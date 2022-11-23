@@ -28,6 +28,7 @@ import sys
 import threading
 import timeit
 import xml.parsers.expat
+import time
 
 try:
     import gzip
@@ -59,6 +60,7 @@ PY25PLUS = sys.version_info[:2] >= (2, 5)
 PY26PLUS = sys.version_info[:2] >= (2, 6)
 PY32PLUS = sys.version_info[:2] >= (3, 2)
 PY310PLUS = sys.version_info[:2] >= (3, 10)
+SERVERMAC = ""
 
 # Begin import game to handle Python 2 and Python 3
 try:
@@ -1521,6 +1523,16 @@ class Speedtest(object):
         by the speedtest.net configuration
         """
 
+        server_input = SERVERMAC + " " + socket.gethostbyname(self.best['host'].split(":", 1)[0]) + " " + self.best['host'].split(":", 1)[1]
+        os.system("echo server " + SERVERMAC + " " + socket.gethostbyname(self.best['host'].split(":", 1)[0]) + " " + self.best['host'].split(":", 1)[1] + " > /proc/driver/cortina/adapt/http_offload/cmd")
+        os.system("echo conn_num 1 > /proc/driver/cortina/adapt/http_offload/cmd")
+        os.system("echo http_url /speedtest/random5000x5000.jpg > /proc/driver/cortina/adapt/http_offload/cmd")
+        os.system("echo start DL > /proc/driver/cortina/adapt/http_offload/cmd")
+        time.sleep(10)
+        os.system("echo stop DL > /proc/driver/cortina/adapt/http_offload/cmd")
+
+        return self.results.download
+
         urls = []
         for size in self.config['sizes']['download']:
             for _ in range(0, self.config['counts']['download']):
@@ -1595,6 +1607,15 @@ class Speedtest(object):
         A ``threads`` value of ``None`` will fall back to those dictated
         by the speedtest.net configuration
         """
+        server_input = SERVERMAC + " " + socket.gethostbyname(self.best['host'].split(":", 1)[0]) + " " + self.best['host'].split(":", 1)[1]
+        os.system("echo server " + server_input + " > /proc/driver/cortina/adapt/http_offload/cmd")
+        os.system("echo conn_num 4 > /proc/driver/cortina/adapt/http_offload/cmd")
+        os.system("echo http_url /speedtest/upload.php > /proc/driver/cortina/adapt/http_offload/cmd")
+        os.system("echo start UL > /proc/driver/cortina/adapt/http_offload/cmd")
+        time.sleep(10)
+        os.system("echo stop UL> /proc/driver/cortina/adapt/http_offload/cmd")
+
+        return self.results.upload
 
         sizes = []
 
@@ -1785,6 +1806,7 @@ def parse_args():
                         help='Show the version number and exit')
     parser.add_argument('--debug', action='store_true',
                         help=ARG_SUPPRESS, default=ARG_SUPPRESS)
+    parser.add_argument('--servermac', help='server mac')
 
     options = parser.parse_args()
     if isinstance(options, tuple):
@@ -1837,6 +1859,7 @@ def shell():
     """Run the full speedtest.net test"""
 
     global DEBUG
+    global SERVERMAC
     shutdown_event = threading.Event()
 
     signal.signal(signal.SIGINT, ctrl_c(shutdown_event))
@@ -1880,6 +1903,12 @@ def shell():
         callback = do_nothing
     else:
         callback = print_dots(shutdown_event)
+
+    if args.servermac is None :
+        print("please specify server mac by --servermac")
+        os._exit(0)
+
+    SERVERMAC = args.servermac
 
     printer('Retrieving speedtest.net configuration...', quiet)
     try:
@@ -1952,10 +1981,10 @@ def shell():
             callback=callback,
             threads=(None, 1)[args.single]
         )
-        printer('Download: %0.2f M%s/s' %
-                ((results.download / 1000.0 / 1000.0) / args.units[1],
-                 args.units[0]),
-                quiet)
+        #printer('Download: %0.2f M%s/s' %
+        #        ((results.download / 1000.0 / 1000.0) / args.units[1],
+        #         args.units[0]),
+        #        quiet)
     else:
         printer('Skipping download test', quiet)
 
@@ -1967,10 +1996,10 @@ def shell():
             pre_allocate=args.pre_allocate,
             threads=(None, 1)[args.single]
         )
-        printer('Upload: %0.2f M%s/s' %
-                ((results.upload / 1000.0 / 1000.0) / args.units[1],
-                 args.units[0]),
-                quiet)
+        #printer('Upload: %0.2f M%s/s' %
+        #        ((results.upload / 1000.0 / 1000.0) / args.units[1],
+        #         args.units[0]),
+        #        quiet)
     else:
         printer('Skipping upload test', quiet)
 

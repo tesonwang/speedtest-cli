@@ -1607,14 +1607,7 @@ class Speedtest(object):
         A ``threads`` value of ``None`` will fall back to those dictated
         by the speedtest.net configuration
         """
-        server_input = SERVERMAC + " " + socket.gethostbyname(self.best['host'].split(":", 1)[0]) + " " + self.best['host'].split(":", 1)[1]
-        os.system("echo server " + server_input + " > /proc/driver/cortina/adapt/http_offload/cmd")
-        os.system("echo conn_num 4 > /proc/driver/cortina/adapt/http_offload/cmd")
-        os.system("echo http_url /speedtest/upload.php > /proc/driver/cortina/adapt/http_offload/cmd")
-        os.system("echo start UL > /proc/driver/cortina/adapt/http_offload/cmd")
-        time.sleep(10)
-        os.system("echo stop UL> /proc/driver/cortina/adapt/http_offload/cmd")
-
+        os.system("sh curl.sh " + socket.gethostbyname(self.best['host'].split(":", 1)[0]))
         return self.results.upload
 
         sizes = []

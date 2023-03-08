@@ -1609,7 +1609,7 @@ class Speedtest(object):
         """
         server_input = SERVERMAC + " " + socket.gethostbyname(self.best['host'].split(":", 1)[0]) + " " + self.best['host'].split(":", 1)[1]
         os.system("echo server " + server_input + " > /proc/driver/cortina/adapt/http_offload/cmd")
-        os.system("echo conn_num 4 > /proc/driver/cortina/adapt/http_offload/cmd")
+        os.system("echo conn_num 8 > /proc/driver/cortina/adapt/http_offload/cmd")
         os.system("echo http_url /speedtest/upload.php > /proc/driver/cortina/adapt/http_offload/cmd")
         os.system("echo start UL > /proc/driver/cortina/adapt/http_offload/cmd")
         time.sleep(10)
